@@ -1,6 +1,6 @@
 {
   "name": "__MSG_appName__",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "manifest_version": 2,
   "description": "__MSG_appDescription__",
   "icons": {
@@ -30,6 +30,23 @@
       "js": [
         "bower_components/jquery/dist/jquery.min.js",
         "scripts/contentscript.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "http://*.systembolaget.se/?searchquery=*",
+        "http://*.systembolaget.se/*",
+        "https://*.systembolaget.se/?searchquery=*"
+      ],
+      "exclude_matches": [
+        "http://*.systembolaget.se/dryck/ol/*",
+        "https://*.systembolaget.se/dryck/ol/*"
+      ],
+      "js": [
+        "bower_components/jquery/dist/jquery.min.js",
+        "scripts/contentscript_search.js"
       ],
       "run_at": "document_end",
       "all_frames": false

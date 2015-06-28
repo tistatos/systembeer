@@ -1,20 +1,22 @@
 'use strict';
 
+
 //Inject HTML with data onto webpage
-function postBeerInfo(beername, overall, style, url) {
-  $('div.product-image').first().prepend(
-    '<div class="row"><div class="col-xs-5 col-sm-4 col-md-12"><a href="'+ url +'" target="_blank"> <div style="background-color: #00346A; color:white; border-radius: 40px;' +
-          'padding:15px;margin-bottom: -150px">' +
-      '<img src="'+chrome.extension.getURL('images/rblogo.png') +'" alt="" style="width:65%; height:10%;">' +
-      '<h1 style="font-size:19px">' + beername + '</h1>' +
-      '<h2 style="font-size:18px"> Overall: ' + overall + ' Style: ' + style +'</h2>' +
-    '</div></a></div></div>');
+function postBeerInfo(beername, overall, style, url, element) {
+  if(overall !== '' || style !=='')
+  {
+    element.before(
+      '<div style="background-color: #00346A;color: white;position: absolute; bottom: 5px; width: 110px;border-radius: 15px;right: 80px;padding: 0px 5px 0px 5px;">' +
+      '<a href=' + url + '>'+
+      '<img src="'+chrome.extension.getURL('images/rblogo.png') +'" alt="" style="width: 64%; height:10%;vertical-align:middle;padding-top:3px;">' +
+      '<h4 style="float: right; font-weight: bolder; margin-bottom: 10px;font-size:10px">' + overall + '/' + style + '</h4></a></div>');
+  }
 
 }
 
 //Get specific data about a beer (webscraped)
-function getBeerInfo(beername, beerlink) {
-  var url = 'http://www.ratebeer.com' + beerlink;
+function getBeerInfo(beername, beerlink, element) {
+  var url = 'http://www.ratebeer.com' + beerlink + '/';
   $.get(url, function(data) {
     var overall = '';
     var style = '';
@@ -30,12 +32,12 @@ function getBeerInfo(beername, beerlink) {
         style = $(this).prev().prev().text();
       }
     });
-    postBeerInfo(beername, overall, style, url);
+    postBeerInfo(beername, overall, style, url, element);
   });
 }
 
 //Search for the beer on ratebeer(result is webscraped)
-function searchBeer(beername) {
+function searchBeer(beername, element) {
   var input = {BeerName : beername};
   var firstHit = '';
   var link = '';
@@ -82,7 +84,7 @@ function searchBeer(beername) {
       if(!foundPerfectMatch)
       {
         console.log('Getting beer info for first hit, ' + firstHit );
-        getBeerInfo(firstHit, link);
+        getBeerInfo(firstHit, link, element);
       }
     }
   });
@@ -98,13 +100,27 @@ function removespecials(beer)
   return strippedBeer;
 }
 
-
 //Get beer name and possible subtitle.
-var systemBeer  = $('.name').children('h1').text();
-var systemSubTitle = $('.subtitle').children('span').text();
-//Remove systemets ID and trim the edges
-systemBeer = systemBeer.substring(0,systemBeer.indexOf('(')-1);
-var beer = $.trim(systemBeer) + " " + $.trim(systemSubTitle);
+$('li.show-more-results').on('DOMSubtreeModified', function() {
+  console.log("more searches")
+  setTimeout(function() {
+  $('li.elm-product-list-item-full').each(function() {
+    if($(this).find('div.ol').length === 1)
+    {
+      var beername = $(this).find('span.product-name-bold*').text()
+      var additional = $(this).find('span.product-name-thin.xs-show-inline').text()
+      var beer = $.trim(beername) + " " + $.trim(additional);
+      var element = $(this).find('div.click-area');
+      searchBeer(removespecials(beer), element)
+    }
+  });
+}, 500);
+})
 
-//Start search
-searchBeer(removespecials(beer));
+// var systemSubTitle = $('.subtitle').children('span').text();
+// //Remove systemets ID and trim the edges
+// systemBeer = systemBeer.substring(0,systemBeer.indexOf('(')-1);
+// var beer = $.trim(systemBeer) + " " + $.trim(systemSubTitle);
+
+// //Start search
+//searchBeer(removespecials(beer));
